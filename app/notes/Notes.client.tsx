@@ -1,30 +1,57 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchNotes, deleteNote } from "@/lib/api";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useDebouncedCallback } from "use-debounce";
+
+import {
+  fetchNotes,
+  deleteNote,
+  createNote,
+} from "@/lib/api";
 
 import NoteList from "@/components/NoteList/NoteList";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
+import Modal from "@/components/Modal/Modal";
+import NoteForm from "@/components/NoteForm/NoteForm";
 
-import css from "./NotesPage.module.css";
+import css from "./Notes.module.css";
 
 export default function NotesClient() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setSearch(value);
+    setPage(1);
+  }, 500);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["notes", page, search],
     queryFn: () => fetchNotes(search, page),
+    placeholderData: (prev) => prev, // ✅ фикс мерцания
   });
 
-  const mutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      setIsOpen(false);
     },
   });
 
@@ -33,8 +60,9 @@ export default function NotesClient() {
 
   return (
     <div className={css.app}>
+      {/* 🔹 HEADER */}
       <header className={css.toolbar}>
-        <SearchBox onSearch={setSearch} />
+        <SearchBox onSearch={debouncedSearch} />
 
         {data.totalPages > 1 && (
           <Pagination
@@ -43,10 +71,27 @@ export default function NotesClient() {
             onPageChange={setPage}
           />
         )}
+
+        <button
+          className={css.button}
+          onClick={() => setIsOpen(true)}
+        >
+          Create note +
+        </button>
       </header>
 
       {data.notes.length > 0 && (
-        <NoteList notes={data.notes} onDelete={mutation.mutate} />
+        <NoteList
+          notes={data.notes}
+          onDelete={deleteMutation.mutate}
+        />
+      )}
+
+      {/* 🔹 MODAL */}
+      {isOpen && (
+        <Modal onClose={() => setIsOpen(false)}>
+          <NoteForm onSubmit={createMutation.mutate} />
+        </Modal>
       )}
     </div>
   );
