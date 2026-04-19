@@ -1,31 +1,72 @@
 import axios from "axios";
-import { setTimeout } from "timers";
+import type { Note, Tag } from "../types/note";
 
-export type Note = {
-    "id": string;
-    "title": string;
-    "content": string;
-    "categoryId": string;
-    "userId": string;
-    "createdAt": string;
-    "updatedAt": string
+// Створюємо інстанс axios з базовими налаштуваннями
+const api = axios.create({
+  baseURL: "https://notehub-public.goit.study/api",
+  headers: {
+    Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
+  },
+});
+
+interface FetchNotesProps {
+  search?: string;
+  page: number;
+  perPage?: number;
+  sortBy?: "created" | "updated";
+  tag?: Tag;
 }
 
-export type NoteListResponse = {
+export interface NotesResponse {
   notes: Note[];
-  total: number;
+  totalPages: number;
+}
+
+/**
+ * Отримання списку нотаток з пагінацією та фільтрами
+ */
+export const fetchNotes = async ({
+  search,
+  tag,
+  page,
+  perPage,
+  sortBy,
+}: FetchNotesProps): Promise<NotesResponse> => {
+  const params: Record<string, string | number> = { page };
+
+  if (search) params.search = search;
+  if (tag) params.tag = tag;
+  if (sortBy) params.sortBy = sortBy;
+  if (typeof perPage === "number") params.perPage = perPage;
+
+  const response = await api.get<NotesResponse>("/notes", { params });
+  return response.data;
 };
 
-
-axios.defaults.baseURL = "https://next-v1-notes-api.goit.study";
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-export const getNotes = async () => {
-    await delay(2000);
-  const res = await axios.get<NoteListResponse>("/notes");
-  return res.data;
+/**
+ * Отримання однієї нотатки за ID (нова функція для HW-06)
+ */
+export const fetchNoteById = async (id: string): Promise<Note> => {
+  const response = await api.get<Note>(`/notes/${id}`);
+  return response.data;
 };
 
-export const getSingleNote = async (id: string) => {
-  const res = await axios.get<Note>(`/notes/${id}`);
-  return res.data;
+/**
+ * Видалення нотатки
+ */
+export const deleteNote = async (id: string): Promise<Note> => {
+  const { data } = await api.delete<Note>(`/notes/${id}`);
+  return data;
+};
+
+/**
+ * Створення нової нотатки
+ */
+export const createNote = async (note: {
+  title: string;
+  content: string;
+  tag: Tag;
+}): Promise<Note> => {
+  const { data } = await api.post<Note>("/notes", note);
+  return data;
 };

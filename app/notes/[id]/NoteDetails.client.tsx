@@ -1,30 +1,17 @@
-'use client';
+"use client"; // ОБОВ'ЯЗКОВО першим рядком
 
-import { getSingleNote } from "@/lib/api";
+import { useState } from "react"; // Тепер useState працюватиме
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useDebouncedCallback } from "use-debounce";
+// ... інші імпорти
 
-
-const NoteDetailsClient = () => {
-    const {id} = useParams<{id: string}>();
-    const {data: note, isLoading, error} = useQuery({
-        queryKey: ["note", id],
-        queryFn: () => getSingleNote(id),
-        refetchOnMount: false,
-    });
-    if (isLoading) return <p>Loading...</p>;
-    if(error|| !note) return <p>Some console.error...</p>;
-      const formattedDate = note.updatedAt
-    ? `Updated at: ${note.updatedAt}`
-    : `Created at: ${note.createdAt}`;
-
+export default function NotesClient() {
+  const [page, setPage] = useState(1); // Працює!
+  const [search, setSearch] = useState(""); // Працює!
+  
+  // Весь інший код з useState та useQuery...
+  
   return (
-    <div>
-      <h2>{note.title}</h2>
-      <p>{note.content}</p>
-      <p>{formattedDate}</p>
-    </div>
+    // Ваш JSX з кнопками onClick та іншим
   );
-};
-
-export default NoteDetailsClient;
+}

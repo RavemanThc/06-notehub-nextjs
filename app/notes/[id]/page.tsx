@@ -1,29 +1,21 @@
-// app/notes/[id]/page.tsx
-
-
-import { getSingleNote } from "@/lib/api";
+// Тут НЕМАЄ "use client", тому це Server Component
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import NoteDetailsClient from "./NoteDetails.client";
+import { fetchNotes } from "@/lib/api";
+import NotesClient from "./Notes.client"; // Імпортуємо клієнтський компонент
 
+export default async function NotesPage() {
+  const queryClient = new QueryClient();
 
-type Props = {
-  params: Promise<{ id: string }>;
-};
+  // Виконуємо запит прямо на сервері
+  await queryClient.prefetchQuery({
+    queryKey: ["notes", 1, 12, "", undefined],
+    queryFn: () => fetchNotes({ page: 1, perPage: 12, search: "", tag: undefined }),
+  });
 
-
-const NoteDetails = async ({ params }: Props) => {
-  const { id } = await params;
-  const queryClient = new QueryClient();
-
-    await queryClient.prefetchQuery({
-        queryKey: ["note", id],
-        queryFn:() => getSingleNote(id),
-    });
-    return( 
+  return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-    <NoteDetailsClient />
-    </HydrationBoundary>)
-
-  }
-
-export default NoteDetails;
+      {/* Передаємо керування клієнтському компоненту */}
+      <NotesClient />
+    </HydrationBoundary>
+  );
+}

@@ -8,7 +8,7 @@ type Props = {
 const Error = ({error, reset}: Props) => {
     return(
         <div>
-            <h2> Помилка при завантаженні можливо посилання не дійсне </h2>
+            <p>Could not fetch the list of notes. {error.message}</p>
             <p>{error.message}</p>
             <button onClick={reset}> Спробувати знову</button>
         </div>
