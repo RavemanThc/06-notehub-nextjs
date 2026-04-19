@@ -1,6 +1,3 @@
-import About from "@/app/about/page"
-import Notes from "@/app/notes/page"
-import Profile from "@/app/profile/page"
 import css from "./Header.module.css"
 import Link from 'next/link';
 

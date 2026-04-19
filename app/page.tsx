@@ -1,12 +1,13 @@
-import css from "./page.module.css"; // не забудьте скопіювати стилі
+import css from "./Home.module.css";
 
-export default function HomePage() {
+export default function Home() {
   return (
     <main>
       <div className={css.container}>
         <h1 className={css.title}>Welcome to NoteHub</h1>
-        <p className={css.description}>NoteHub is a simple and efficient application...</p>
-        <p className={css.description}>The app provides a clean interface...</p>
+        <p className={css.description}>
+          NoteHub is a simple and efficient application designed for managing notes.
+        </p>
       </div>
     </main>
   );
